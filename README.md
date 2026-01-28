@@ -50,7 +50,7 @@ The system uses an LLM-based router that:
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/marie-ocds/chatbot
 cd project
 ```
 
