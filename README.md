@@ -91,7 +91,7 @@ SCENE_SIMILARITY_TOP_K = 3
 
 ## Usage
 
-### Running the Chatbot
+### Running the Chatbot locally
 
 ```bash
 python main.py
@@ -109,49 +109,9 @@ Example queries:
 
 Type `exit` or `quit` to end the session.
 
-### Rebuilding the Scenes Index
+### Web interface
 
-If you modify `SCENE_CHUNK_SIZE` or `SCENE_CHUNK_OVERLAP`, rebuild only the scenes index:
-
-```bash
-python rebuild_scenes_index.py
-```
-
-This preserves the book and chapter indices while regenerating scene-level chunks.
-
-## Project Structure
-
-```
-project/
-├── book/
-│   └── the-story-of-doctor-dolittle.pdf
-├── src/
-│   ├── config.py           # Configuration parameters
-│   ├── data_loader.py      # PDF processing and document creation
-│   ├── indexing.py         # Vector index management
-│   ├── retrieval.py        # Query routing and retrieval
-│   └── utils.py            # Text processing utilities
-├── chroma_db/              # ChromaDB persistent storage (generated)
-├── main.py                 # Main chatbot script
-├── rebuild_scenes_index.py # Utility to rebuild scenes index
-├── requirements.txt        # Python dependencies
-├── .env                    # Environment variables (create this)
-└── README.md              # This file
-```
-
-## Technical Details
-
-### Dependencies
-
-- **llama-index-core**: Core RAG framework
-- **llama-index-embeddings-openai**: OpenAI embeddings integration
-- **llama-index-llms-openai**: OpenAI LLM integration
-- **llama-index-vector-stores-chroma**: ChromaDB vector store
-- **chromadb**: Vector database
-- **openai**: OpenAI API client
-- **PyMuPDF**: PDF text extraction
-- **pydantic**: Data validation
-- **python-dotenv**: Environment variable management
+The chatbot can also be run online as a streamlit app: https://chatbot-doc-dolittle.streamlit.app/
 
 ### Text Processing Pipeline
 
@@ -162,25 +122,6 @@ project/
 5. **Chunking**: Split chapters into scenes using sentence-aware splitting
 6. **Embedding**: Generate vector embeddings using OpenAI
 7. **Indexing**: Store in ChromaDB for efficient retrieval
-
-## Performance Optimizations
-
-- **Single-document optimization**: Book and chapter queries skip unnecessary similarity calculations
-- **Metadata filtering**: Efficient chapter-specific retrieval
-- **Persistent storage**: Indices are loaded from disk after initial creation
-- **Configurable chunking**: Balance between granularity and context
-
-## Future Enhancements
-
-- Add support for multiple books
-- Implement conversation memory for follow-up questions
-- Add citation extraction with page numbers
-- Support for multimodal content (images from the book)
-- Web interface using Streamlit or Gradio
-
-## License
-
-[Add license information]
 
 ## Acknowledgments
 
