@@ -9,7 +9,7 @@ from typing import Optional, Literal
 import json
 from pydantic import ValidationError
 
-from src.config import ROUTER_PROMPT_TEMPLATE, SCENE_SIMILARITY_TOP_K
+from src.config import ROUTER_PROMPT_TEMPLATE, SCENE_SIMILARITY_TOP_K, QA_SYSTEM_PROMPT
 
 
 class RouteDecision(BaseModel):
@@ -20,6 +20,7 @@ class RouteDecision(BaseModel):
     chapter_index: Optional[int] = Field(default=None)
 
 ROUTER_PROMPT = PromptTemplate(ROUTER_PROMPT_TEMPLATE)
+QA_PROMPT = PromptTemplate(QA_SYSTEM_PROMPT)
 
 
 def route_query(query: str) -> RouteDecision:
@@ -47,13 +48,14 @@ def route_query(query: str) -> RouteDecision:
         return RouteDecision(route="scene", chapter_index=None)
 
 
-def chapter_index_engine_filtered(chapter_index, chapter_index_value: int):
+def chapter_index_engine_filtered(chapter_index, chapter_index_value: int, text_qa_template=None):
     """
     Create a filtered query engine for a specific chapter.
 
     Args:
         chapter_index: The chapter VectorStoreIndex
         chapter_index_value: The chapter number to filter by
+        text_qa_template: Optional QA prompt template
 
     Returns:
         Query engine filtered by chapter_index
@@ -67,7 +69,11 @@ def chapter_index_engine_filtered(chapter_index, chapter_index_value: int):
         ]
     )
 
-    return chapter_index.as_query_engine(filters=filters, similarity_top_k=1)
+    return chapter_index.as_query_engine(
+        filters=filters,
+        similarity_top_k=1,
+        text_qa_template=text_qa_template
+    )
 
 
 def answer_query(query: str, book_index, chapter_index, scenes_index):
@@ -87,17 +93,27 @@ def answer_query(query: str, book_index, chapter_index, scenes_index):
     print(decision)
 
     if decision.route == "book":
-        query_engine = book_index.as_query_engine(similarity_top_k=1)
+        query_engine = book_index.as_query_engine(
+            similarity_top_k=1,
+            text_qa_template=QA_PROMPT
+        )
 
     elif decision.route == "chapter":
         if decision.chapter_index is not None:
             # apply metadata filtering
-            query_engine = chapter_index_engine_filtered(chapter_index, decision.chapter_index)
+            query_engine = chapter_index_engine_filtered(
+                chapter_index,
+                decision.chapter_index,
+                text_qa_template=QA_PROMPT
+            )
         else:
-            query_engine = chapter_index.as_query_engine()
+            query_engine = chapter_index.as_query_engine(text_qa_template=QA_PROMPT)
 
     else:  # scene
-        query_engine = scenes_index.as_query_engine(similarity_top_k=SCENE_SIMILARITY_TOP_K)
+        query_engine = scenes_index.as_query_engine(
+            similarity_top_k=SCENE_SIMILARITY_TOP_K,
+            text_qa_template=QA_PROMPT
+        )
 
     return query_engine.query(query)
 
